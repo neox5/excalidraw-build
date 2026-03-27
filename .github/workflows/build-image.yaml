@@ -1,5 +1,4 @@
 name: build-image
-
 on:
   push:
     branches-ignore:
@@ -8,63 +7,30 @@ on:
     branches-ignore:
       - main
   workflow_dispatch:
-
 permissions:
   contents: read
   packages: write
-
 concurrency:
   group: excalidraw-image-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
 
-      - name: Read image settings from Makefile
-        id: vars
-        shell: bash
-        run: |
-          while IFS='=' read -r key value; do
-            case "$key" in
-              IMAGE|EXCALIDRAW_REF|VITE_APP_WS_SERVER_URL)
-                echo "$key=$value" >> "$GITHUB_ENV"
-                echo "${key,,}=$value" >> "$GITHUB_OUTPUT"
-                ;;
-            esac
-          done < <(make print)
-
-          echo "Resolved IMAGE=$IMAGE"
-          echo "Resolved EXCALIDRAW_REF=$EXCALIDRAW_REF"
-          echo "Resolved VITE_APP_WS_SERVER_URL=$VITE_APP_WS_SERVER_URL"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: redhat-actions/podman-login@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Containerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.IMAGE }}
-          build-args: |
-            EXCALIDRAW_REF=${{ env.EXCALIDRAW_REF }}
-            VITE_APP_WS_SERVER_URL=${{ env.VITE_APP_WS_SERVER_URL }}
+        run: make build
 
-      - name: Show published image
+      - name: Push image
         if: github.event_name != 'pull_request'
-        run: |
-          echo "Published: $IMAGE"
+        run: make push
