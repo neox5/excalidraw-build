@@ -1,7 +1,6 @@
 FROM docker.io/node:22-bookworm-slim AS build
 
 ARG EXCALIDRAW_REF=v0.18.0
-ARG VITE_APP_WS_SERVER_URL
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -22,7 +21,7 @@ RUN git clone https://github.com/excalidraw/excalidraw.git . \
 RUN yarn install --frozen-lockfile --network-timeout 600000
 
 ENV NODE_ENV=production
-ENV VITE_APP_WS_SERVER_URL="${VITE_APP_WS_SERVER_URL}"
+ENV VITE_APP_WS_SERVER_URL="__COLLAB_SERVER_URL__"
 ENV VITE_APP_DISABLE_SENTRY=true
 ENV VITE_APP_DISABLE_TRACKING=true
 
@@ -32,5 +31,10 @@ FROM docker.io/caddy:2.8-alpine
 
 COPY --from=build /src/excalidraw-app/build /srv
 COPY Caddyfile /etc/caddy/Caddyfile
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,10 +1,10 @@
 name: build-image
 on:
   push:
-    branches-ignore:
+    branches:
       - main
   pull_request:
-    branches-ignore:
+    branches:
       - main
   workflow_dispatch:
 permissions:
