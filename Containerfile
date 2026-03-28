@@ -31,5 +31,6 @@ RUN yarn build:app:docker
 FROM docker.io/caddy:2.8-alpine
 
 COPY --from=build /src/excalidraw-app/build /srv
+COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80
