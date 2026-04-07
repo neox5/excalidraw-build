@@ -37,14 +37,16 @@ build-local:
 
 .PHONY: run
 run:
-	$(PODMAN) run --rm -p 8080:80 \
+	$(PODMAN) run --rm --network host \
 		-e COLLAB_SERVER_URL=$(COLLAB_SERVER_URL) \
+		-e CADDY_PORT=8080 \
 		$(IMAGE)
 
 .PHONY: run-local
 run-local:
-	$(PODMAN) run --rm -p 8080:80 \
+	$(PODMAN) run --rm --network host \
 		-e COLLAB_SERVER_URL=excalidraw-room.zion.local \
+		-e CADDY_PORT=8080 \
 		$(IMAGE_LOCAL)
 
 .PHONY: push
