@@ -1,63 +1,54 @@
 # excalidraw-build
 
-Builds and publishes a self-hosted Excalidraw frontend with a custom collaboration server endpoint.
+Builds and publishes a self-hosted Excalidraw frontend with a configurable collaboration server endpoint.
 
 ## Overview
 
-- Frontend is built from source with `VITE_APP_WS_SERVER_URL`
-- Each deployment target = one git branch
-- Each branch produces one container image
-- Images are tagged as:
+- Frontend is built from source as a static Vite bundle
+- Collaboration server URL is injected at container startup via environment variable
+- One image per Excalidraw version, reusable across deployment targets
+
+## Usage
+
+Pull the image:
 
 ```
-<excalidraw_ref>-<normalized_collab_host>
+podman pull ghcr.io/neox5/excalidraw:v0.18.0-self-hosted
 ```
 
-Example:
+Run with your collaboration server:
 
 ```
-v0.18.0-excalidraw-room_zion_local
+podman run --rm -p 8080:80 \
+  -e COLLAB_SERVER_URL=excalidraw-room.example.com \
+  ghcr.io/neox5/excalidraw:v0.18.0-self-hosted
 ```
 
-## Repository Model
+Excalidraw is then available at `http://localhost:8080`.
 
-- `main` → template (not built)
-- `target branches` → one per deployment (contain real values in `Makefile`)
+## Configuration
 
-Each target branch defines:
+| Variable            | Required | Description                          |
+| ------------------- | -------- | ------------------------------------ |
+| `COLLAB_SERVER_URL` | yes      | Hostname of the collaboration server |
 
-- `EXCALIDRAW_REF`
-- `VITE_APP_WS_SERVER_URL`
-- derived `IMAGE_TAG`
-
-## Build (local)
+## Development
 
 ```
-make build
-```
-
-Run locally:
-
-```
-make run
-```
-
-## Push
-
-```
-make push
+make build-local   # build localhost/excalidraw:dev
+make run-local     # run with excalidraw-room.zion.local
+make help          # list all targets
 ```
 
 ## CI/CD
 
-- Push to a target branch → builds and publishes image to GHCR
+- Push to `main` → builds and publishes image to GHCR
 - Pull requests → build only (no push)
-- Manual runs → rebuild any branch via GitHub Actions UI
+- Manual runs → rebuild via GitHub Actions UI
 
 ## Notes
 
-- Collab URL is embedded at build time (Vite static build)
-- Changing collab endpoint requires rebuilding the image
+- Changing the collab endpoint does not require rebuilding the image
 - `.local` domains require internal DNS / internal CA (no public ACME)
 
 ## Related Components
