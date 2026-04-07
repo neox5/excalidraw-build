@@ -1,7 +1,8 @@
 IMAGE_NAME := ghcr.io/neox5/excalidraw
 EXCALIDRAW_REF := v0.18.0
 
-IMAGE := $(IMAGE_NAME):$(EXCALIDRAW_REF)-self-hosted
+IMAGE_TAG := $(subst v,,$(EXCALIDRAW_REF))-self-hosted
+IMAGE := $(IMAGE_NAME):$(IMAGE_TAG)
 IMAGE_LOCAL := localhost/excalidraw:dev
 
 PODMAN ?= podman
